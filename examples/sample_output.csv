@@ -1,0 +1,5 @@
+IP,MAC,Hostname,Vendor,Puertos Abiertos
+192.168.1.1,3C:D9:2B:AA:BB:CC,router.home,Hewlett Packard,"53, 80, 443"
+192.168.1.5,B8:27:EB:11:22:33,raspberrypi,Raspberry Pi Foundation,22
+192.168.1.12,00:0C:29:44:55:66,kali-vm,VMware, Inc.,
+192.168.1.25,DC:A6:32:77:88:99,laptop-asus,ASUSTek COMPUTER INC.,

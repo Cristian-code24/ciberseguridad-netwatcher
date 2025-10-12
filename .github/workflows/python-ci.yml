@@ -1,0 +1,51 @@
+# Nombre del Flujo de Trabajo
+name: Python CI
+
+# Eventos que disparan el flujo de trabajo
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Trabajos a ejecutar
+jobs:
+  build:
+    # Máquina virtual donde se ejecutará el trabajo
+    runs-on: ubuntu-latest
+
+    # Estrategia de matriz para probar en diferentes versiones de Python
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+    # 1. Checkout del código del repositorio
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2. Configurar el entorno de Python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # 3. Instalar dependencias
+    # Se actualiza pip y se instalan las dependencias de requirements.txt
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    # 4. Ejecutar el linter (Flake8)
+    # Busca errores de estilo y problemas en el código.
+    # La configuración está en setup.cfg
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --show-source --statistics
+
+    # 5. Ejecutar las pruebas unitarias (Pytest)
+    # Descubre y ejecuta las pruebas en el directorio 'tests'
+    - name: Test with pytest
+      run: |
+        pytest
