@@ -57,7 +57,7 @@ Sigue estos pasos para configurar el entorno y las dependencias del proyecto.
 
 Clona el repositorio (o descomprime los archivos):
 
-git clone [https://github.com/tu-usuario/ciberseguridad-netwatcher.git](https://github.com/tu-usuario/ciberseguridad-netwatcher.git)
+git clone [https://github.com/Cristian-code24/ciberseguridad-netwatcher.git](https://github.com/Cristian-code24/ciberseguridad-netwatcher.git)
 cd ciberseguridad-netwatcher
 
 Crea y activa un entorno virtual:
@@ -150,7 +150,7 @@ Crea un nuevo repositorio en GitHub (ej. ciberseguridad-netwatcher).
 Enlaza tu repositorio local con el remoto:
 Reemplaza tu-usuario y tu-repositorio con tus datos.
 
-git remote add origin [https://github.com/tu-usuario/ciberseguridad-netwatcher.git](https://github.com/tu-usuario/ciberseguridad-netwatcher.git)
+git remote add origin [https://github.com/Cristian-code24/ciberseguridad-netwatcher.git](https://github.com/Cristian-code24/ciberseguridad-netwatcher.git)
 
 Sube tus archivos a GitHub:
 
@@ -158,3 +158,4 @@ git push -u origin main
 
 Licencia
 Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
+creado por cristian lucas:)

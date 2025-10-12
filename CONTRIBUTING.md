@@ -17,7 +17,7 @@ Haz un Fork del Repositorio: Haz clic en el botón "Fork" en la esquina superior
 
 Clona tu Fork:
 
-git clone [https://github.com/tu-usuario/ciberseguridad-netwatcher.git](https://github.com/tu-usuario/ciberseguridad-netwatcher.git)
+git clone [https://github.com/Cristian-code24/ciberseguridad-netwatcher.git](https://github.com/Cristian-code24/ciberseguridad-netwatcher.git)
 cd ciberseguridad-netwatcher
 
 Crea una Rama Nueva: Es importante trabajar en una rama separada para cada nueva característica o corrección.
