@@ -86,14 +86,10 @@ def main():
         description="NetWatcher CLI - Herramienta de escaneo de red.",
         epilog="Recuerda ejecutar 'scan-arp' con sudo.",
     )
-    subparsers = parser.add_subparsers(
-        dest="command", required=True, help="Subcomandos disponibles"
-    )
+    subparsers = parser.add_subparsers(dest="command", required=True, help="Subcomandos disponibles")
 
     # Subcomando para escaneo ARP
-    parser_arp = subparsers.add_parser(
-        "scan-arp", help="Realiza un escaneo ARP para descubrir hosts."
-    )
+    parser_arp = subparsers.add_parser("scan-arp", help="Realiza un escaneo ARP para descubrir hosts.")
     parser_arp.add_argument(
         "--cidr",
         required=True,
@@ -102,12 +98,8 @@ def main():
     parser_arp.set_defaults(func=handle_arp_scan)
 
     # Subcomando para escaneo Nmap
-    parser_nmap = subparsers.add_parser(
-        "scan-nmap", help="Realiza un escaneo de puertos con Nmap."
-    )
-    parser_nmap.add_argument(
-        "--ip", required=True, help="La dirección IP del objetivo."
-    )
+    parser_nmap = subparsers.add_parser("scan-nmap", help="Realiza un escaneo de puertos con Nmap.")
+    parser_nmap.add_argument("--ip", required=True, help="La dirección IP del objetivo.")
     parser_nmap.add_argument(
         "--ports",
         default="1-1024",
@@ -116,9 +108,7 @@ def main():
     parser_nmap.set_defaults(func=handle_nmap_scan)
 
     # Subcomando para exportar
-    parser_export = subparsers.add_parser(
-        "export", help="Exporta los resultados del último escaneo a un archivo CSV."
-    )
+    parser_export = subparsers.add_parser("export", help="Exporta los resultados del último escaneo a un archivo CSV.")
     parser_export.add_argument(
         "--file",
         required=True,

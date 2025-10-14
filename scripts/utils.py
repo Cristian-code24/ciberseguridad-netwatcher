@@ -51,9 +51,7 @@ def run_arp_scan(cidr: str) -> list:
     try:
         from scapy.all import arping
     except ImportError:
-        raise ImportError(
-            "Scapy no está instalado. Por favor, ejecuta 'pip install scapy'."
-        )
+        raise ImportError("Scapy no está instalado. Por favor, ejecuta 'pip install scapy'.")
 
     try:
         ans, unans = arping(cidr, verbose=0)
@@ -109,15 +107,11 @@ def _nmap_scan_subprocess(ip: str, port_range: str) -> list:
     try:
         # Usamos -oG - para una salida "grepable" más fácil de parsear
         command = ["nmap", "-p", port_range, "-T4", ip, "-oG", "-"]
-        result = subprocess.run(
-            command, capture_output=True, text=True, check=True, timeout=180
-        )
+        result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=180)
 
         open_ports = []
         for line in result.stdout.splitlines():
-            if (
-                "Ports:" in line and "Status: Open" not in line
-            ):  # Filtro para encontrar puertos abiertos
+            if "Ports:" in line and "Status: Open" not in line:  # Filtro para encontrar puertos abiertos
                 parts = line.split("Ports: ")[1]
                 ports_info = parts.split("\t")[0].strip()
                 for port_info in ports_info.split(","):

@@ -91,9 +91,7 @@ Host: 192.168.1.1 (router.local)    Status: Up
 Host: 192.168.1.1 (router.local)    Ports: 22/open/tcp//ssh///, 80/open/tcp//http///, 443/open/tcp//https///
 # Nmap done at Tue Oct 12 10:00:10 2025; 1 IP address (1 host up) scanned in 10.00 seconds
 """
-    mock_subprocess_run.return_value = MagicMock(
-        stdout=nmap_output, stderr="", returncode=0
-    )
+    mock_subprocess_run.return_value = MagicMock(stdout=nmap_output, stderr="", returncode=0)
 
     result = _nmap_scan_subprocess("192.168.1.1", "1-1024")
     assert result == [22, 80, 443]
@@ -118,18 +116,14 @@ Host: 192.168.1.10 (host.local) Status: Up
 def test_nmap_scan_subprocess_file_not_found(mock_subprocess_run):
     """Prueba que se lance una excepción si Nmap no está instalado."""
     mock_subprocess_run.side_effect = FileNotFoundError
-    with pytest.raises(
-        Exception, match="Nmap no está instalado o no se encuentra en el PATH."
-    ):
+    with pytest.raises(Exception, match="Nmap no está instalado o no se encuentra en el PATH."):
         _nmap_scan_subprocess("127.0.0.1", "22")
 
 
 @patch("subprocess.run")
 def test_nmap_scan_subprocess_called_process_error(mock_subprocess_run):
     """Prueba que se lance una excepción si Nmap devuelve un error."""
-    mock_subprocess_run.side_effect = subprocess.CalledProcessError(
-        1, "nmap", stderr="Error de Nmap"
-    )
+    mock_subprocess_run.side_effect = subprocess.CalledProcessError(1, "nmap", stderr="Error de Nmap")
     with pytest.raises(Exception, match="Error al ejecutar Nmap"):
         _nmap_scan_subprocess("127.0.0.1", "22")
 
