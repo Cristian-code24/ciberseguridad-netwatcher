@@ -20,11 +20,8 @@ if os.name == "nt":
 # 2. Imports de librerías de terceros
 import PySimpleGUI as sg
 
-# 3. Modificación del path (código ejecutable)
-# Añadir el directorio padre al path para poder importar módulos locales.
+# 3. Modificación del path y imports locales
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# 4. Imports de módulos locales (de tu aplicación)
 from scripts.utils import detect_local_cidr, export_csv, nmap_scan, run_arp_scan
 
 
@@ -43,7 +40,6 @@ def check_permissions():
     try:
         if os.name == "nt":  # Sistema operativo Windows
             return ctypes.windll.shell32.IsUserAnAdmin() != 0
-        # Para Linux/macOS, el ID de usuario efectivo debe ser 0 (root)
         return os.geteuid() == 0
     except Exception:
         return False
@@ -58,7 +54,6 @@ def log_message(window, message, level="INFO"):
 def run_scan_in_thread(window, scan_function, *args):
     """
     Ejecuta una función de escaneo en un hilo separado para no bloquear la GUI.
-    Actualiza la GUI con los resultados al finalizar mediante eventos.
     """
     try:
         results = scan_function(*args)
@@ -85,25 +80,17 @@ def create_main_window():
 
     table_layout = [
         sg.Table(
-            values=[],
-            headings=TABLE_HEADINGS,
-            key="-RESULTS-",
-            display_row_numbers=True,
-            auto_size_columns=False,
-            col_widths=[15, 15, 20, 20, 30],
-            justification="left",
-            enable_events=True,
-            num_rows=15,
+            values=[], headings=TABLE_HEADINGS, key="-RESULTS-",
+            display_row_numbers=True, auto_size_columns=False,
+            col_widths=[15, 15, 20, 20, 30], justification="left",
+            enable_events=True, num_rows=15,
         )
     ]
 
     log_layout = [
         sg.Text("Logs y Notificaciones:"),
         sg.Multiline(
-            key="-LOG-",
-            size=(100, 8),
-            autoscroll=True,
-            disabled=True,
+            key="-LOG-", size=(100, 8), autoscroll=True, disabled=True,
         ),
         sg.Button("Exportar a CSV", key="-EXPORT-", disabled=True),
     ]
@@ -126,18 +113,15 @@ def main():
         sg.popup_error(
             "Permisos Insuficientes",
             "El escaneo ARP requiere privilegios de Administrador.\n"
-            "Por favor, cierra esta ventana y ejecuta el script como administrador.",
+            "Por favor, ejecuta el script como administrador.",
         )
-        return  # Salir de la aplicación si no hay permisos
+        return
 
     window = create_main_window()
-    scan_thread = None
     hosts_data = []
 
     while True:
         event, values = window.read()
-
-        # Desempaquetar eventos que vienen de hilos (que son tuplas)
         event_key, event_data = event if isinstance(event, tuple) else (event, None)
 
         if event_key == sg.WIN_CLOSED:
@@ -157,14 +141,6 @@ def main():
                 )
 
         elif event_key == "-ARP-SCAN-":
-            if not check_permissions():
-                log_message(
-                    window,
-                    "El escaneo ARP requiere privilegios. Operación cancelada.",
-                    "ERROR",
-                )
-                continue
-
             cidr_input = values["-CIDR-"]
             if not cidr_input:
                 log_message(window, "Por favor, introduce un rango CIDR.", "ERROR")
@@ -174,84 +150,66 @@ def main():
             window["-ARP-SCAN-"].update(disabled=True)
             window["-STOP-"].update(disabled=False)
 
-            # Limpiar resultados anteriores
             hosts_data.clear()
             window["-RESULTS-"].update(values=[])
             window["-EXPORT-"].update(disabled=True)
             window["-NMAP-SCAN-"].update(disabled=True)
 
-            scan_thread = threading.Thread(
+            threading.Thread(
                 target=run_scan_in_thread,
                 args=(window, run_arp_scan, cidr_input),
                 daemon=True,
-            )
-            scan_thread.start()
+            ).start()
 
         elif event_key == "-SCAN-COMPLETE-":
             scan_results = event_data
             log_message(window, f"Escaneo ARP completado. {len(scan_results)} hosts encontrados.", "INFO")
-
             hosts_data = [
-                [
-                    host.get("ip", "N/A"),
-                    host.get("mac", "N/A"),
-                    host.get("hostname", "N/A"),
-                    host.get("vendor", "N/A"),
-                    "",  # Columna para puertos, vacía inicialmente
-                ]
+                [host.get(k, "N/A") for k in ["ip", "mac", "hostname", "vendor"]] + [""]
                 for host in scan_results
             ]
             window["-RESULTS-"].update(values=hosts_data)
             window["-EXPORT-"].update(disabled=not hosts_data)
             window["-ARP-SCAN-"].update(disabled=False)
             window["-STOP-"].update(disabled=True)
-            scan_thread = None
 
         elif event_key == "-SCAN-ERROR-":
-            error_message = event_data
-            log_message(window, f"Error durante el escaneo: {error_message}", "ERROR")
+            log_message(window, f"Error durante el escaneo: {event_data}", "ERROR")
             window["-ARP-SCAN-"].update(disabled=False)
             window["-STOP-"].update(disabled=True)
-            scan_thread = None
 
         elif event_key == "-RESULTS-":
-            # Habilita el botón de Nmap solo si hay una fila seleccionada
-            selected_rows = values["-RESULTS-"]
-            window["-NMAP-SCAN-"].update(disabled=not selected_rows)
+            # Habilita el botón si hay filas seleccionadas, deshabilita si no.
+            window["-NMAP-SCAN-"].update(disabled=not values["-RESULTS-"])
 
         elif event_key == "-NMAP-SCAN-":
             selected_rows = values["-RESULTS-"]
             if not selected_rows:
-                log_message(window, "Selecciona un host de la tabla para escanear.", "WARN")
+                log_message(window, "Selecciona un host para escanear.", "WARN")
                 continue
 
-            selected_row_index = selected_rows[0]
-            target_ip = hosts_data[selected_row_index][0]
-
+            row_index = selected_rows[0]
+            target_ip = hosts_data[row_index][0]
             log_message(window, f"Iniciando Nmap Quick Scan en {target_ip}...")
             window["-NMAP-SCAN-"].update(disabled=True)
 
-            # Usamos la función genérica para correr el escaneo en un hilo
-            nmap_thread = threading.Thread(
+            threading.Thread(
                 target=run_scan_in_thread,
-                args=(window, nmap_scan, target_ip, selected_row_index),
+                args=(window, nmap_scan, target_ip, row_index),
                 daemon=True,
-            )
-            nmap_thread.start()
+            ).start()
 
         elif event_key == "-NMAP-COMPLETE-":
             row_index, open_ports = event_data
             target_ip = hosts_data[row_index][0]
             log_message(window, f"Escaneo Nmap para {target_ip} completado.", "INFO")
-
             ports_str = ", ".join(map(str, open_ports)) if open_ports else "Ninguno"
             hosts_data[row_index][4] = ports_str
             window["-RESULTS-"].update(values=hosts_data)
             window["-NMAP-SCAN-"].update(disabled=False)
 
         elif event_key == "-NMAP-ERROR-":
-            error_message = event_data
-            log_message(window, f"Error en Nmap: {error_message}", "ERROR")
+            log_message(window, f"Error en Nmap: {event_data}", "ERROR")
             window["-NMAP-SCAN-"].update(disabled=False)
 
         elif event_key == "-EXPORT-":
@@ -260,11 +218,8 @@ def main():
                 continue
 
             filepath = sg.popup_get_file(
-                "Guardar como",
-                save_as=True,
-                no_window=True,
-                file_types=(("CSV Files", "*.csv"),),
-                default_extension=".csv",
+                "Guardar como", save_as=True, no_window=True,
+                file_types=(("CSV Files", "*.csv"),), default_extension=".csv"
             )
             if filepath:
                 try:
@@ -279,3 +234,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
