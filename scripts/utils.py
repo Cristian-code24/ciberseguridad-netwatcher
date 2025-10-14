@@ -11,10 +11,8 @@ Fecha: 2025-10-12
 """
 
 import csv
-import subprocess
 import socket
-import json
-import os
+import subprocess
 import sys
 
 # --- Base de datos OUI (Organizationally Unique Identifier) simple ---
@@ -41,7 +39,7 @@ def run_arp_scan(cidr: str) -> list:
         cidr (str): El rango de red en notación CIDR (ej. "192.168.1.0/24").
 
     Returns:
-        list: Una lista de diccionarios, donde cada uno representa un host encontrado.
+        list: Una lista de diccionarios, donde cada uno representa un host.
               Ej: [{'ip': '...', 'mac': '...', 'hostname': '...', 'vendor': '...'}]
 
     Raises:
@@ -51,10 +49,10 @@ def run_arp_scan(cidr: str) -> list:
     try:
         from scapy.all import arping
     except ImportError:
-        raise ImportError("Scapy no está instalado. Por favor, ejecuta 'pip install scapy'.")
+        raise ImportError("Scapy no está instalado. Ejecuta 'pip install scapy'.")
 
     try:
-        ans, unans = arping(cidr, verbose=0)
+        ans, _ = arping(cidr, verbose=0)
         hosts = []
         for sent, received in ans:
             ip = received.psrc
@@ -106,12 +104,14 @@ def _nmap_scan_subprocess(ip: str, port_range: str) -> list:
     """Función de fallback para escanear con Nmap usando subprocess."""
     try:
         # Usamos -oG - para una salida "grepable" más fácil de parsear
-        command = ["nmap", "-p", port_range, "-T4", ip, "-oG", "-"]
-        result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=180)
+        command = ["nmap", "-p", port_range, "-T4", "-oG", "-", ip]
+        result = subprocess.run(
+            command, capture_output=True, text=True, check=True, timeout=180
+        )
 
         open_ports = []
         for line in result.stdout.splitlines():
-            if "Ports:" in line and "Status: Open" not in line:  # Filtro para encontrar puertos abiertos
+            if "Ports:" in line and "Status: Open" not in line:
                 parts = line.split("Ports: ")[1]
                 ports_info = parts.split("\t")[0].strip()
                 for port_info in ports_info.split(","):
@@ -150,9 +150,7 @@ def reverse_dns(ip: str) -> str:
 
 def vendor_lookup(mac: str) -> str:
     """
-
-    Busca el fabricante (vendor) basado en los primeros 3 bytes de la dirección MAC.
-    Usa una base de datos OUI interna simple.
+    Busca el fabricante (vendor) basado en los 3 primeros bytes de la MAC.
 
     Args:
         mac (str): La dirección MAC completa.
@@ -178,10 +176,9 @@ def detect_local_cidr() -> str | None:
     """
     try:
         # Crea un socket para conectarse a un servidor externo (no envía datos)
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        local_ip = s.getsockname()[0]
-        s.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
 
         # Asume una máscara de subred /24, común en redes domésticas
         ip_parts = local_ip.split(".")

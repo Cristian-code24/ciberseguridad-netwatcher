@@ -10,20 +10,22 @@ Autor: Cristian-code24
 Fecha: 2025-10-12
 """
 
+# 1. Imports de la librería estándar
 import os
 import sys
 import threading
-
-# Añadir el directorio padre al path para poder importar módulos de 'scripts'
-# Esto es necesario para ejecutar el script directamente desde su carpeta.
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import PySimpleGUI as sg
-from scripts.utils import detect_local_cidr, export_csv, nmap_scan, run_arp_scan
-
-# Importación condicional para la verificación de permisos en Windows
 if os.name == "nt":
     import ctypes
+
+# 2. Imports de librerías de terceros
+import PySimpleGUI as sg
+
+# 3. Modificación del path (código ejecutable)
+# Añadir el directorio padre al path para poder importar módulos locales.
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# 4. Imports de módulos locales (de tu aplicación)
+from scripts.utils import detect_local_cidr, export_csv, nmap_scan, run_arp_scan
 
 
 # --- Constantes y Configuración ---
@@ -207,7 +209,7 @@ def main():
 
         elif event_key == "-SCAN-ERROR-":
             error_message = event_data
-            log_message(f"Error durante el escaneo: {error_message}", "ERROR")
+            log_message(window, f"Error durante el escaneo: {error_message}", "ERROR")
             window["-ARP-SCAN-"].update(disabled=False)
             window["-STOP-"].update(disabled=True)
             scan_thread = None
@@ -240,7 +242,7 @@ def main():
         elif event_key == "-NMAP-COMPLETE-":
             row_index, open_ports = event_data
             target_ip = hosts_data[row_index][0]
-            log_message(f"Escaneo Nmap para {target_ip} completado.", "INFO")
+            log_message(window, f"Escaneo Nmap para {target_ip} completado.", "INFO")
 
             ports_str = ", ".join(map(str, open_ports)) if open_ports else "Ninguno"
             hosts_data[row_index][4] = ports_str
