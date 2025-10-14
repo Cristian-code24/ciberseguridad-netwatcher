@@ -22,7 +22,7 @@ import PySimpleGUI as sg
 
 # 3. Modificación del path y imports locales
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from scripts.utils import detect_local_cidr, export_csv, nmap_scan, run_arp_scan
+from scripts.utils import detect_local_cidr, export_csv, nmap_scan, run_arp_scan  # noqa: E402
 
 
 # --- Constantes y Configuración ---
@@ -234,4 +234,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
