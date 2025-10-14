@@ -1,11 +1,6 @@
-GUI Framework
 PySimpleGUI>=4.60.0
-
-Network Scanning
 scapy>=2.5.0
 python-nmap>=0.7.1
 requests>=2.31.0
-
-Testing and Linting
 pytest>=7.4.0
 flake8>=6.1.0
