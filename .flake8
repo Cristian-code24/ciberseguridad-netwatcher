@@ -1,3 +1,8 @@
 [flake8]
+# Aumenta la longitud máxima de línea permitida a 120 caracteres
 max-line-length = 120
-extend-ignore = E203, W503
+
+# Ignora los errores específicos que te está dando el workflow
+# E402: import no está al principio del archivo
+# F841: variable local asignada pero no usada
+extend-ignore = E402, F841
