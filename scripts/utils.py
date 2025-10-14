@@ -31,6 +31,7 @@ OUI_DB = {
 
 # --- Funciones de Escaneo ---
 
+
 def run_arp_scan(cidr: str) -> list:
     """
     Realiza un escaneo ARP en el rango CIDR especificado usando Scapy.
@@ -42,7 +43,7 @@ def run_arp_scan(cidr: str) -> list:
     Returns:
         list: Una lista de diccionarios, donde cada uno representa un host encontrado.
               Ej: [{'ip': '...', 'mac': '...', 'hostname': '...', 'vendor': '...'}]
-    
+
     Raises:
         ImportError: Si Scapy no está instalado.
         Exception: Si ocurre un error durante el escaneo.
@@ -50,7 +51,9 @@ def run_arp_scan(cidr: str) -> list:
     try:
         from scapy.all import arping
     except ImportError:
-        raise ImportError("Scapy no está instalado. Por favor, ejecuta 'pip install scapy'.")
+        raise ImportError(
+            "Scapy no está instalado. Por favor, ejecuta 'pip install scapy'."
+        )
 
     try:
         ans, unans = arping(cidr, verbose=0)
@@ -60,15 +63,11 @@ def run_arp_scan(cidr: str) -> list:
             mac = received.hwsrc
             hostname = reverse_dns(ip)
             vendor = vendor_lookup(mac)
-            hosts.append({
-                "ip": ip,
-                "mac": mac,
-                "hostname": hostname,
-                "vendor": vendor
-            })
+            hosts.append({"ip": ip, "mac": mac, "hostname": hostname, "vendor": vendor})
         return hosts
     except Exception as e:
         raise Exception(f"Fallo en el escaneo ARP: {e}")
+
 
 def nmap_scan(ip: str, port_range: str = "1-1024") -> list:
     """
@@ -80,22 +79,24 @@ def nmap_scan(ip: str, port_range: str = "1-1024") -> list:
 
     Returns:
         list: Una lista de enteros representando los puertos abiertos.
-    
+
     Raises:
         Exception: Si Nmap no se encuentra o falla.
     """
     try:
         import nmap
+
         scanner = nmap.PortScanner()
     except ImportError:
         # Fallback a subprocess si python-nmap no está instalado
         return _nmap_scan_subprocess(ip, port_range)
 
     try:
-        scanner.scan(ip, port_range, arguments='-T4') # -T4 para un escaneo más rápido
+        # -T4 para un escaneo más rápido
+        scanner.scan(ip, port_range, arguments="-T4")
         open_ports = []
-        if ip in scanner.all_hosts() and 'tcp' in scanner[ip]:
-            open_ports = list(scanner[ip]['tcp'].keys())
+        if ip in scanner.all_hosts() and "tcp" in scanner[ip]:
+            open_ports = list(scanner[ip]["tcp"].keys())
         return open_ports
     except Exception as e:
         # Si python-nmap falla, intentar con el subprocess
@@ -111,10 +112,12 @@ def _nmap_scan_subprocess(ip: str, port_range: str) -> list:
         result = subprocess.run(
             command, capture_output=True, text=True, check=True, timeout=180
         )
-        
+
         open_ports = []
         for line in result.stdout.splitlines():
-            if "Ports:" in line and "Status: Open" not in line: # Filtro para encontrar puertos abiertos
+            if (
+                "Ports:" in line and "Status: Open" not in line
+            ):  # Filtro para encontrar puertos abiertos
                 parts = line.split("Ports: ")[1]
                 ports_info = parts.split("\t")[0].strip()
                 for port_info in ports_info.split(","):
@@ -133,6 +136,7 @@ def _nmap_scan_subprocess(ip: str, port_range: str) -> list:
 
 # --- Funciones de Utilidad ---
 
+
 def reverse_dns(ip: str) -> str:
     """
     Intenta obtener el nombre de host (hostname) para una IP dada.
@@ -149,6 +153,7 @@ def reverse_dns(ip: str) -> str:
     except (socket.herror, socket.gaierror):
         return "N/A"
 
+
 def vendor_lookup(mac: str) -> str:
     """
 
@@ -163,10 +168,11 @@ def vendor_lookup(mac: str) -> str:
     """
     if not isinstance(mac, str):
         return "Desconocido"
-    
+
     # Normalizar la MAC a mayúsculas y usar ":" como separador
     oui = mac.upper().replace("-", ":")[:8]
     return OUI_DB.get(oui, "Desconocido")
+
 
 def detect_local_cidr() -> str | None:
     """
@@ -182,13 +188,14 @@ def detect_local_cidr() -> str | None:
         s.connect(("8.8.8.8", 80))
         local_ip = s.getsockname()[0]
         s.close()
-        
+
         # Asume una máscara de subred /24, común en redes domésticas
-        ip_parts = local_ip.split('.')
+        ip_parts = local_ip.split(".")
         network_base = ".".join(ip_parts[:3])
         return f"{network_base}.0/24"
     except Exception:
         return None
+
 
 def export_csv(data: list, filepath: str):
     """
@@ -197,7 +204,7 @@ def export_csv(data: list, filepath: str):
     Args:
         data (list): Lista de diccionarios con los datos.
         filepath (str): La ruta del archivo CSV de salida.
-    
+
     Raises:
         ValueError: Si la lista de datos está vacía.
         IOError: Si ocurre un error al escribir el archivo.
