@@ -1,9 +1,12 @@
+import os
 import pytest
 from unittest.mock import patch
 import sys
 import json
 
-from scripts import cli
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from scripts import cli  # noqa: E402
 
 
 @patch("scripts.cli.run_arp_scan")

@@ -9,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
 
     strategy:
       matrix:
@@ -37,15 +34,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest -v > pytest_report.log
-
-    - name: Create Issue on Failure
-      if: failure()
-      run: |
-        cat pytest_report.log
-        BODY=$(cat pytest_report.log | jq -aRs .)
-        curl -X POST \
-          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/Cristian-code24/ciberseguridad-netwatcher/issues \
-          -d "{\"title\":\"CI Failure Report\",\"body\":$BODY}"
+        python -m pytest
