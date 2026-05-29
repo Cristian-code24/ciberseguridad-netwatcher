@@ -1,3 +1,4 @@
+import builtins
 import os
 import socket
 import subprocess
@@ -119,14 +120,14 @@ def test_nmap_scan_subprocess_success(mock_run):
     )
     mock_run.return_value = MagicMock(stdout=nmap_output, stderr="", returncode=0)
 
-    with patch(
-        "builtins.__import__",
-        side_effect=lambda n, *a, **k: (
-            (_ for _ in ()).throw(ImportError())
-            if n == "nmap"
-            else __import__(n, *a, **k)
-        )
-    ):
+    original_import = builtins.__import__
+
+    def mock_import(name, *args, **kwargs):
+        if name == "nmap":
+            raise ImportError("Mocked nmap import")
+        return original_import(name, *args, **kwargs)
+
+    with patch("builtins.__import__", side_effect=mock_import):
         try:
             result = nmap_scan("192.168.1.1", "1-1024")
         except ImportError:
