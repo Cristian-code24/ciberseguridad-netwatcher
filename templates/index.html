@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetWatcher — Network Security Scanner</title>
+  <meta name="description" content="NetWatcher v2.0 — Herramienta educativa de ciberseguridad para escaneo de redes y análisis de puertos." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <!-- Matrix background canvas -->
+  <canvas id="matrix-bg" aria-hidden="true"></canvas>
+
+  <!-- ============================================================ HEADER -->
+  <header id="main-header">
+    <div class="header-logo">
+      <span class="logo-shield">🛡️</span>
+      <span class="logo-text">Net<span class="logo-accent">Watcher</span></span>
+      <span class="version-badge">v2.0</span>
+    </div>
+
+    <div class="header-center">
+      <div class="live-pill">
+        <span class="pulse-dot"></span>
+        LIVE
+      </div>
+      <div class="clock-display" id="clock">00:00:00</div>
+    </div>
+
+    <div class="header-right">
+      <div class="net-status" id="net-status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-label">Detectando red...</span>
+      </div>
+      <div class="detected-cidr mono" id="header-cidr" title="Red detectada"></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ MAIN -->
+  <main id="app-main">
+
+    <!-- ─── LEFT SIDEBAR ─── -->
+    <aside id="sidebar-left">
+
+      <!-- Scanner Controls -->
+      <section class="card scanner-card">
+        <div class="card-header">
+          <span class="card-icon">🔍</span>
+          <h2 class="card-title">Scanner</h2>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar" role="tablist">
+          <button class="tab-btn active" data-tab="arp" role="tab" aria-selected="true" id="tab-arp-btn">
+            ARP Discovery
+          </button>
+          <button class="tab-btn" data-tab="nmap" role="tab" aria-selected="false" id="tab-nmap-btn">
+            Port Scan
+          </button>
+        </div>
+
+        <!-- ARP Panel -->
+        <div class="tab-pane active" id="pane-arp">
+          <div class="field-group">
+            <label class="field-label" for="cidr-input">Rango de Red (CIDR)</label>
+            <div class="input-row">
+              <input
+                type="text"
+                id="cidr-input"
+                class="mono-input"
+                placeholder="192.168.1.0/24"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button id="auto-detect-btn" class="icon-btn" title="Auto-detectar CIDR">🎯</button>
+            </div>
+            <div class="field-hint" id="cidr-hint"></div>
+          </div>
+
+          <div class="preset-label">Presets rápidos</div>
+          <div class="chips-row">
+            <button class="chip" data-cidr="192.168.0.0/24">192.168.0.x</button>
+            <button class="chip" data-cidr="192.168.1.0/24">192.168.1.x</button>
+            <button class="chip" data-cidr="10.0.0.0/24">10.0.0.x</button>
+            <button class="chip" data-cidr="172.16.0.0/24">172.16.0.x</button>
+          </div>
+
+          <div class="action-btns">
+            <button id="arp-scan-btn" class="btn btn-primary" title="Iniciar escaneo ARP [Enter]">
+              <span>▶</span> Iniciar Escaneo
+            </button>
+            <button id="stop-btn" class="btn btn-danger" disabled title="Detener escaneo [Esc]">
+              <span>■</span> Detener
+            </button>
+          </div>
+        </div>
+
+        <!-- Nmap Panel -->
+        <div class="tab-pane" id="pane-nmap">
+          <div class="field-group">
+            <label class="field-label" for="nmap-ip">IP Objetivo</label>
+            <input
+              type="text"
+              id="nmap-ip"
+              class="mono-input"
+              placeholder="192.168.1.1"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="nmap-ports">Rango de Puertos</label>
+            <input
+              type="text"
+              id="nmap-ports"
+              class="mono-input"
+              value="1-1024"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="preset-label">Presets de puertos</div>
+          <div class="chips-row">
+            <button class="chip" data-ports="1-1024">Comunes</button>
+            <button class="chip" data-ports="1-65535">Completo</button>
+            <button class="chip" data-ports="22,80,443,21,25,53,3389,3306">Top Web</button>
+            <button class="chip" data-ports="135,139,445,3389,5900">Windows</button>
+          </div>
+
+          <button id="nmap-scan-btn" class="btn btn-primary" style="margin-top:0.75rem">
+            <span>🔬</span> Escanear Puertos
+          </button>
+        </div>
+      </section>
+
+      <!-- Progress -->
+      <section class="card progress-card" id="progress-card" style="display:none">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <h3 class="card-title">Progreso</h3>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progress-bar-fill"></div>
+        </div>
+        <div class="progress-meta">
+          <span id="progress-label">Inicializando...</span>
+          <span id="progress-count" class="mono">0 hosts</span>
+        </div>
+        <div class="scan-wave" id="scan-wave"></div>
+      </section>
+
+      <!-- Stats -->
+      <section class="card stats-card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <h3 class="card-title">Estadísticas</h3>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-tile">
+            <div class="stat-val" id="stat-hosts">0</div>
+            <div class="stat-lbl">Hosts</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-val" id="stat-ports">0</div>
+            <div class="stat-lbl">Puertos</div>
+          </div>
+          <div class="stat-tile danger">
+            <div class="stat-val" id="stat-high">0</div>
+            <div class="stat-lbl">Alto Riesgo</div>
+          </div>
+          <div class="stat-tile accent">
+            <div class="stat-val" id="stat-time">—</div>
+            <div class="stat-lbl">Tiempo</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Export -->
+      <section class="card export-card">
+        <div class="card-header">
+          <span class="card-icon">💾</span>
+          <h3 class="card-title">Exportar</h3>
+        </div>
+        <div class="export-row">
+          <button id="export-csv-btn" class="btn btn-secondary" disabled>
+            📊 CSV
+          </button>
+          <button id="export-json-btn" class="btn btn-secondary" disabled>
+            📋 JSON
+          </button>
+        </div>
+        <div class="export-hint">Los datos incluyen IP, MAC, Vendor, Puertos y Riesgo</div>
+      </section>
+    </aside>
+
+    <!-- ─── CENTER PANEL ─── -->
+    <div id="center-panel">
+
+      <!-- Hosts table -->
+      <section class="card hosts-card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-icon">🌐</span>
+            <h2 class="card-title">Hosts Descubiertos</h2>
+            <span class="count-badge" id="host-count-badge">0</span>
+          </div>
+          <div class="table-controls">
+            <input
+              type="search"
+              id="filter-input"
+              class="filter-input"
+              placeholder="Filtrar por IP, MAC, vendor..."
+              aria-label="Filtrar hosts"
+            />
+            <select id="risk-filter" class="filter-select" aria-label="Filtrar por riesgo">
+              <option value="">Todos</option>
+              <option value="HIGH">🔴 Alto</option>
+              <option value="MEDIUM">🟠 Medio</option>
+              <option value="LOW">🟡 Bajo</option>
+              <option value="SAFE">🟢 Seguro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap" role="region" aria-label="Tabla de hosts">
+          <table id="hosts-table" aria-live="polite">
+            <thead>
+              <tr>
+                <th class="col-num">#</th>
+                <th class="col-ip sortable" data-col="ip">IP Address</th>
+                <th class="col-mac">MAC Address</th>
+                <th class="col-host">Hostname</th>
+                <th class="col-vendor">Vendor / OS</th>
+                <th class="col-risk sortable" data-col="risk">Riesgo</th>
+                <th class="col-ports">Puertos Abiertos</th>
+                <th class="col-actions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="hosts-tbody">
+              <tr id="empty-state-row">
+                <td colspan="8">
+                  <div class="empty-state">
+                    <div class="empty-icon">🌐</div>
+                    <div class="empty-title">Sin hosts descubiertos</div>
+                    <div class="empty-sub">Introduce un rango CIDR e inicia el escaneo ARP</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Activity Log -->
+      <section class="card log-card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="card-icon">📋</span>
+            <h3 class="card-title">Log de Actividad</h3>
+          </div>
+          <button id="clear-log-btn" class="icon-btn" title="Limpiar log">🗑️</button>
+        </div>
+        <div id="activity-log" role="log" aria-live="polite" aria-label="Log de actividad"></div>
+      </section>
+    </div>
+
+    <!-- ─── RIGHT SIDEBAR ─── -->
+    <aside id="sidebar-right">
+      <section class="card detail-card" id="detail-card">
+        <div class="card-header">
+          <span class="card-icon">🔬</span>
+          <h2 class="card-title">Detalles del Host</h2>
+        </div>
+
+        <div id="detail-placeholder" class="detail-placeholder">
+          <div class="ph-icon">🖥️</div>
+          <p>Selecciona un host de la tabla para ver sus detalles y escanear sus puertos</p>
+        </div>
+
+        <div id="detail-content" style="display:none">
+          <!-- Host info summary -->
+          <div class="host-summary" id="detail-host-summary"></div>
+
+          <!-- Nmap controls for selected host -->
+          <div class="nmap-inline">
+            <input type="text" id="detail-ports" class="mono-input sm" value="1-1024" placeholder="Puertos" />
+            <button id="detail-nmap-btn" class="btn btn-primary sm">
+              🔬 Scan
+            </button>
+          </div>
+
+          <!-- Port scan status -->
+          <div id="nmap-status" class="nmap-status" style="display:none">
+            <div class="nmap-spinner"></div>
+            <span id="nmap-status-text">Escaneando puertos...</span>
+          </div>
+
+          <!-- Risk assessment -->
+          <div id="risk-section" style="display:none">
+            <div class="risk-header">
+              <span>Evaluación de Riesgo</span>
+              <span class="risk-badge-lg" id="risk-badge-lg"></span>
+            </div>
+            <div class="risk-hints" id="risk-hints"></div>
+          </div>
+
+          <!-- Port grid -->
+          <div id="ports-section" style="display:none">
+            <div class="ports-section-title">Puertos Abiertos</div>
+            <div class="port-grid" id="port-grid"></div>
+          </div>
+
+          <!-- OS guess -->
+          <div id="os-section" class="os-section" style="display:none">
+            <span class="os-label">Sistema Operativo</span>
+            <span id="os-guess"></span>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ============================================================ MODAL -->
+  <div id="host-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="display:none">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modal-title">Detalles del Host</h2>
+        <button id="modal-close-btn" class="icon-btn" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ TOASTS -->
+  <div id="toast-container" aria-live="assertive" role="region" aria-label="Notificaciones"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

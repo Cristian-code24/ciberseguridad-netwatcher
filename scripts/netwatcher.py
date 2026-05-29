@@ -1,44 +1,25 @@
-# -*- coding: utf-8 -*-
-"""
-NetWatcher GUI - Herramienta Educativa de Escaneo de Red
-
-Este script lanza una interfaz gráfica de usuario (GUI) para realizar escaneos
-de red de forma sencilla. Permite descubrir hosts mediante ARP y escanear
-puertos básicos con Nmap.
-
-Autor: Cristian-code24
-Fecha: 2025-10-12
-"""
-
-# 1. Imports de la librería estándar
 import os
 import sys
 import threading
+
 if os.name == "nt":
     import ctypes
 
-# 2. Imports de librerías de terceros
 import PySimpleGUI as sg
 
-# 3. Modificación del path y imports locales
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.utils import detect_local_cidr, export_csv, nmap_scan, run_arp_scan  # noqa: E402
 
 
-# --- Constantes y Configuración ---
 APP_TITLE = "NetWatcher - Escáner de Red Educativo"
 TABLE_HEADINGS = ["IP", "MAC", "Hostname", "Vendor", "Puertos Abiertos"]
 DEFAULT_THEME = "DarkBlue3"
 LOG_LEVELS = {"INFO": "green", "WARN": "yellow", "ERROR": "red", "DEBUG": "lightblue"}
 
 
-# --- Funciones de Soporte ---
-
-
 def check_permissions():
-    """Verifica si el script se ejecuta con privilegios de administrador."""
     try:
-        if os.name == "nt":  # Sistema operativo Windows
+        if os.name == "nt":
             return ctypes.windll.shell32.IsUserAnAdmin() != 0
         return os.geteuid() == 0
     except Exception:
@@ -46,15 +27,11 @@ def check_permissions():
 
 
 def log_message(window, message, level="INFO"):
-    """Añade un mensaje al área de logs de la GUI con color."""
     color = LOG_LEVELS.get(level, "white")
     window["-LOG-"].print(f"[{level}] {message}", text_color=color)
 
 
 def run_scan_in_thread(window, scan_function, *args):
-    """
-    Ejecuta una función de escaneo en un hilo separado para no bloquear la GUI.
-    """
     try:
         results = scan_function(*args)
         window.write_event_value(("-SCAN-COMPLETE-", results), None)
@@ -62,11 +39,15 @@ def run_scan_in_thread(window, scan_function, *args):
         window.write_event_value(("-SCAN-ERROR-", str(e)), None)
 
 
-# --- Layout de la GUI ---
+def run_nmap_in_thread(window, target_ip, row_index, port_range="1-1024"):
+    try:
+        open_ports = nmap_scan(target_ip, port_range)
+        window.write_event_value(("-NMAP-COMPLETE-", (row_index, open_ports)), None)
+    except Exception as e:
+        window.write_event_value(("-NMAP-ERROR-", str(e)), None)
 
 
 def create_main_window():
-    """Crea y devuelve el objeto ventana principal de PySimpleGUI."""
     sg.theme(DEFAULT_THEME)
 
     controls_layout = [
@@ -104,16 +85,14 @@ def create_main_window():
     return sg.Window(APP_TITLE, layout, finalize=True)
 
 
-# --- Lógica Principal de la Aplicación ---
-
-
 def main():
-    """Bucle principal de eventos de la aplicación."""
     if not check_permissions():
         sg.popup_error(
             "Permisos Insuficientes",
             "El escaneo ARP requiere privilegios de Administrador.\n"
-            "Por favor, ejecuta el script como administrador.",
+            "Por favor, ejecuta el script como administrador.\n\n"
+            "Tip: Para la versión web completa usa:\n"
+            "  python app.py",
         )
         return
 
@@ -137,7 +116,7 @@ def main():
                 log_message(
                     window,
                     "No se pudo detectar el CIDR. Introdúcelo manualmente.",
-                    "WARN",
+                    "WARN"
                 )
 
         elif event_key == "-ARP-SCAN-":
@@ -149,7 +128,6 @@ def main():
             log_message(window, f"Iniciando escaneo ARP en {cidr_input}...")
             window["-ARP-SCAN-"].update(disabled=True)
             window["-STOP-"].update(disabled=False)
-
             hosts_data.clear()
             window["-RESULTS-"].update(values=[])
             window["-EXPORT-"].update(disabled=True)
@@ -163,7 +141,11 @@ def main():
 
         elif event_key == "-SCAN-COMPLETE-":
             scan_results = event_data
-            log_message(window, f"Escaneo ARP completado. {len(scan_results)} hosts encontrados.", "INFO")
+            log_message(
+                window,
+                f"Escaneo ARP completado. {len(scan_results)} hosts encontrados.",
+                "INFO"
+            )
             hosts_data = [
                 [host.get(k, "N/A") for k in ["ip", "mac", "hostname", "vendor"]] + [""]
                 for host in scan_results
@@ -179,7 +161,6 @@ def main():
             window["-STOP-"].update(disabled=True)
 
         elif event_key == "-RESULTS-":
-            # Habilita el botón si hay filas seleccionadas, deshabilita si no.
             window["-NMAP-SCAN-"].update(disabled=not values["-RESULTS-"])
 
         elif event_key == "-NMAP-SCAN-":
@@ -194,8 +175,8 @@ def main():
             window["-NMAP-SCAN-"].update(disabled=True)
 
             threading.Thread(
-                target=run_scan_in_thread,
-                args=(window, nmap_scan, target_ip, row_index),
+                target=run_nmap_in_thread,
+                args=(window, target_ip, row_index),
                 daemon=True,
             ).start()
 

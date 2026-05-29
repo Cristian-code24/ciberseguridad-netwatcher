@@ -1,44 +1,26 @@
-# -*- coding: utf-8 -*-
-"""
-NetWatcher CLI - Interfaz de Línea de Comandos
-
-Este script proporciona una interfaz de línea de comandos para interactuar
-con las funciones de escaneo de NetWatcher.
-
-Autor: Cristian-code24
-Fecha: 2025-10-12
-"""
-
-# 1. Imports de la librería estándar
 import argparse
 import json
 import os
 import sys
 
-# Importación condicional para la verificación de permisos en Windows
 if os.name == "nt":
     import ctypes
 
-# 2. Modificación del path (código ejecutable)
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 3. Imports de módulos locales
-from scripts.utils import run_arp_scan, nmap_scan, export_csv
+from scripts.utils import run_arp_scan, nmap_scan, export_csv  # noqa: E402
 
 
 def check_permissions():
-    """Verifica si el script se ejecuta con privilegios de administrador."""
     try:
-        if os.name == "nt":  # Sistema operativo Windows
+        if os.name == "nt":
             return ctypes.windll.shell32.IsUserAnAdmin() != 0
-        # Para Linux/macOS, el ID de usuario efectivo debe ser 0 (root)
         return os.geteuid() == 0
     except Exception:
         return False
 
 
 def handle_arp_scan(args):
-    """Maneja el subcomando 'scan-arp'."""
     if not check_permissions():
         print("Error: El escaneo ARP requiere privilegios de administrador.")
         sys.exit(1)
@@ -53,7 +35,6 @@ def handle_arp_scan(args):
 
 
 def handle_nmap_scan(args):
-    """Maneja el subcomando 'scan-nmap'."""
     print(f"Iniciando escaneo Nmap en {args.ip} para los puertos {args.ports}...")
     try:
         results = nmap_scan(args.ip, port_range=args.ports)
@@ -65,9 +46,6 @@ def handle_nmap_scan(args):
 
 
 def handle_export(args):
-    """Maneja el subcomando 'export' (función de ejemplo)."""
-    # En un escenario real, aquí se leerían datos de un estado previo.
-    # Para este ejemplo, creamos datos ficticios.
     print(f"Exportando datos de ejemplo a {args.file}...")
     sample_data = [
         {
@@ -90,7 +68,6 @@ def handle_export(args):
 
 
 def main():
-    """Función principal que configura y parsea los argumentos de la CLI."""
     parser = argparse.ArgumentParser(
         description="NetWatcher CLI - Herramienta de escaneo de red.",
         epilog="Recuerda ejecutar 'scan-arp' como administrador.",
@@ -99,7 +76,6 @@ def main():
         dest="command", required=True, help="Subcomandos disponibles"
     )
 
-    # Subcomando para escaneo ARP
     parser_arp = subparsers.add_parser(
         "scan-arp", help="Realiza un escaneo ARP para descubrir hosts."
     )
@@ -110,7 +86,6 @@ def main():
     )
     parser_arp.set_defaults(func=handle_arp_scan)
 
-    # Subcomando para escaneo Nmap
     parser_nmap = subparsers.add_parser(
         "scan-nmap", help="Realiza un escaneo de puertos con Nmap."
     )
@@ -122,7 +97,6 @@ def main():
     )
     parser_nmap.set_defaults(func=handle_nmap_scan)
 
-    # Subcomando para exportar
     parser_export = subparsers.add_parser(
         "export", help="Exporta los resultados a un archivo CSV."
     )

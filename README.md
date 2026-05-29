@@ -1,161 +1,179 @@
-NetWatcher - Herramienta Educativa de Escaneo de Red
-NetWatcher es una herramienta educativa de ciberseguridad desarrollada en Python para escanear dispositivos en una red local (escaneo ARP) y ejecutar análisis de puertos básicos con Nmap. Ofrece tanto una Interfaz Gráfica de Usuario (GUI) como una Interfaz de Línea de Comandos (CLI) para adaptarse a diferentes niveles de habilidad.
+# NetWatcher 🛡️
 
-Propósito Principal: Facilitar el aprendizaje práctico de conceptos de redes y seguridad en un entorno controlado y legal.
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.x-black?logo=flask)](https://flask.palletsprojects.com)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Educational](https://img.shields.io/badge/Purpose-Educational-orange)]()
 
-ADVERTENCIA LEGAL: Esta herramienta está diseñada únicamente para fines educativos. Usarla en redes para las que no tienes permiso explícito es ilegal y poco ético. El autor no se hace responsable del mal uso de este software.
+> **Herramienta educativa de ciberseguridad** para descubrir dispositivos en redes locales y analizar puertos. Diseñada para aprender conceptos de redes y seguridad en un entorno controlado y legal.
 
-Tabla de Contenidos
-Características Principales
+---
 
-Requisitos Previos
+> [!CAUTION]
+> **Solo para fines educativos.** Usar esta herramienta en redes para las que no tienes permiso explícito es **ilegal**. El autor no se responsabiliza del mal uso.
 
-Instalación
+---
 
-Uso de la Herramienta
+## ✨ Características
 
-Interfaz Gráfica (GUI)
+| Función | Descripción |
+|---|---|
+| 🌐 **Escaneo ARP** | Descubre dispositivos activos en tu red local con Scapy |
+| 🔬 **Escaneo de Puertos** | Analiza puertos con Nmap (1-1024 o rango personalizado) |
+| 🎨 **Dashboard Web** | Interfaz premium oscura con actualizaciones en tiempo real (SSE) |
+| 🏭 **Identificación de Vendor** | Base de datos OUI con +200 fabricantes |
+| ⚠️ **Evaluación de Riesgo** | Clasifica hosts en ALTO / MEDIO / BAJO / SEGURO |
+| 💡 **Pistas de Seguridad** | Alertas educativas para puertos peligrosos |
+| 💾 **Exportación** | CSV y JSON con un clic |
+| 💻 **CLI** | Interfaz de línea de comandos para scripting |
 
-Línea de Comandos (CLI)
+---
 
-Permisos de Ejecución
+## 📋 Requisitos
 
-Desarrollo y Pruebas
+- **Python** 3.11+
+- **Nmap** instalado en el sistema
+- **Privilegios de administrador** para escaneo ARP
 
-Subir a GitHub
+### Sistema operativo
+- **Linux/macOS**: Recomendado (Kali Linux ideal)
+- **Windows**: Compatible, requiere [Npcap](https://npcap.com/) para Scapy
 
-Licencia
+---
 
-Características Principales
-Escaneo ARP: Descubre dispositivos activos en tu red local usando Scapy.
+## 🚀 Instalación
 
-Escaneo de Puertos: Realiza un escaneo rápido de los puertos más comunes (1-1024) en un objetivo específico usando Nmap.
-
-Interfaz Dual: Utiliza la GUI amigable construida con PySimpleGUI o la CLI para automatización y scripting.
-
-Detección de Fabricante: Identifica el fabricante de la tarjeta de red a partir de la dirección MAC.
-
-Exportación de Resultados: Guarda los resultados del escaneo en formato CSV.
-
-Educativo: Código claro y comentado, acompañado de documentación sobre arquitectura y ética.
-
-Requisitos Previos
-Sistema Operativo: Diseñado para Kali Linux o distribuciones similares de Linux. Puede funcionar en otros sistemas, pero podría requerir ajustes.
-
-Python: Versión 3.11 o superior.
-
-Nmap: Debe estar instalado en tu sistema.
-
-sudo apt update && sudo apt install nmap -y
-
-Librerías de Desarrollo: Necesarias para compilar algunas dependencias.
-
-sudo apt install python3-dev libpcap-dev -y
-
-Instalación
-Sigue estos pasos para configurar el entorno y las dependencias del proyecto.
-
-Clona el repositorio (o descomprime los archivos):
-
-git clone [https://github.com/Cristian-code24/ciberseguridad-netwatcher.git](https://github.com/Cristian-code24/ciberseguridad-netwatcher.git)
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/Cristian-code24/ciberseguridad-netwatcher.git
 cd ciberseguridad-netwatcher
 
-Crea y activa un entorno virtual:
-Es una buena práctica para aislar las dependencias del proyecto.
-
+# 2. Crear entorno virtual
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate    # Linux/macOS
+# venv\Scripts\activate     # Windows
 
-Para desactivar el entorno, simplemente ejecuta deactivate.
-
-Instala las dependencias:
-El archivo requirements.txt contiene todas las librerías de Python necesarias.
-
+# 3. Instalar dependencias
 pip install -r requirements.txt
 
-Uso de la Herramienta
-Interfaz Gráfica (GUI)
-La GUI es la forma más sencilla de interactuar con NetWatcher.
+# 4. Instalar Nmap (si no está instalado)
+# Linux:
+sudo apt install nmap -y
+# macOS:
+brew install nmap
+```
 
-IMPORTANTE: El escaneo ARP requiere privilegios de root para crear paquetes raw. Ejecútalo con sudo.
+---
 
+## 💻 Uso
+
+### 🌐 Dashboard Web (Recomendado)
+
+```bash
+# Requiere privilegios de administrador para escaneo ARP
+sudo python3 app.py
+```
+
+Luego abre **http://localhost:5000** en tu navegador.
+
+**Funcionalidades del dashboard:**
+- **Auto-detectar CIDR**: detecta automáticamente tu rango de red
+- **Presets rápidos**: 192.168.0.x, 192.168.1.x, 10.0.0.x, etc.
+- **Escaneo en tiempo real**: los hosts aparecen conforme se descubren
+- **Evaluación de riesgo**: código de colores por nivel de riesgo
+- **Panel de detalles**: haz clic en un host para ver sus puertos
+- **Exportar CSV/JSON**: descarga los resultados con un clic
+- **Log de actividad**: rastrea todas las acciones en tiempo real
+
+### 🖥️ GUI Legada (PySimpleGUI)
+
+```bash
 sudo python3 scripts/netwatcher.py
+```
 
-Funcionalidades:
+### ⌨️ CLI
 
-Detectar CIDR: Intenta autodetectar el rango de tu red local (ej. 192.168.1.0/24).
-
-Scan ARP: Inicia el escaneo de dispositivos en el rango CIDR especificado.
-
-Nmap Quick Scan: Selecciona un dispositivo de la tabla y haz clic en este botón para escanear sus puertos (1-1024).
-
-Exportar a CSV: Guarda los resultados visibles en la tabla en un archivo CSV.
-
-Detener Scan: Detiene el proceso de escaneo actual.
-
-Línea de Comandos (CLI)
-La CLI es ideal para scripting y usuarios avanzados.
-
+```bash
 # Ayuda general
 python3 scripts/cli.py --help
 
 # Escaneo ARP (requiere sudo)
 sudo python3 scripts/cli.py scan-arp --cidr 192.168.1.0/24
 
-# Escaneo Nmap
+# Escaneo de puertos
 python3 scripts/cli.py scan-nmap --ip 192.168.1.1 --ports 1-1024
 
-# Exportar el último resultado de un escaneo a un archivo (función de ejemplo)
-python3 scripts/cli.py export --file mis_resultados.csv
+# Exportar resultados
+python3 scripts/cli.py export --file resultados.csv
+```
 
-Permisos de Ejecución
-El escaneo ARP con Scapy funciona enviando paquetes ARP a bajo nivel, una operación que los sistemas operativos modernos restringen a usuarios con privilegios elevados. Por esta razón, debes ejecutar los scripts que usan esta función con sudo.
+---
 
-Si no se ejecuta con sudo, la aplicación te notificará que el escaneo ARP no puede continuar. El escaneo Nmap, por otro lado, generalmente no requiere sudo para escaneos TCP básicos.
+## 🔐 Permisos
 
-Desarrollo y Pruebas
-Si deseas contribuir al proyecto o simplemente verificar la integridad del código, puedes ejecutar las pruebas y el linter.
+El escaneo ARP usa Scapy para enviar paquetes a bajo nivel, lo que requiere **privilegios de root/administrador**.
 
-Activa el entorno virtual:
+```bash
+# Linux/macOS
+sudo python3 app.py
 
+# Windows (PowerShell como Administrador)
+python app.py
+```
+
+> El escaneo Nmap generalmente **no** requiere sudo para escaneos TCP básicos.
+
+---
+
+## 🏗️ Arquitectura
+
+```
+netwatcher/
+├── app.py              # 🌐 Flask web app (entrada principal)
+├── scripts/
+│   ├── utils.py        # 🧠 Lógica de negocio (ARP, Nmap, OUI, riesgo)
+│   ├── netwatcher.py   # 🖥️ GUI PySimpleGUI (legada)
+│   └── cli.py          # ⌨️ CLI argparse
+├── templates/
+│   └── index.html      # 🎨 Dashboard web
+├── static/
+│   ├── css/style.css   # 💅 Tema dark cyber
+│   └── js/app.js       # ⚡ Frontend con SSE
+├── tests/              # ✅ Pruebas unitarias
+├── docs/               # 📚 Documentación técnica
+└── recursos/           # 📖 Cheatsheets
+```
+
+---
+
+## 🧪 Desarrollo
+
+```bash
+# Activar entorno virtual
 source venv/bin/activate
 
-Ejecuta el linter (Flake8):
-Verifica que el código siga las guías de estilo.
+# Ejecutar pruebas (no requieren sudo ni red activa)
+pytest tests/ -v
 
+# Linter
 flake8 .
+```
 
-Ejecuta las pruebas unitarias (Pytest):
-Las pruebas están diseñadas para no requerir sudo ni una conexión de red activa (usan mocks).
+---
 
-pytest
+## 📚 Recursos
 
-Subir a GitHub
-Si descargaste los archivos como un ZIP y quieres crear tu propio repositorio en GitHub:
+- [`recursos/nmap_cheatsheet.md`](recursos/nmap_cheatsheet.md) — Referencia rápida de Nmap
+- [`recursos/comandos_wifi.md`](recursos/comandos_wifi.md) — Comandos WiFi útiles
+- [`docs/architecture.md`](docs/architecture.md) — Arquitectura del sistema
+- [`docs/privacy_and_ethics.md`](docs/privacy_and_ethics.md) — Ética y privacidad
 
-Inicializa un repositorio Git local:
+---
 
-git init -b main
+## 📄 Licencia
 
-Añade todos los archivos al área de preparación:
+MIT — Ver [LICENSE](LICENSE) para detalles.
 
-git add .
+---
 
-Crea tu primer commit:
-
-git commit -m "Initial commit: Proyecto NetWatcher"
-
-Crea un nuevo repositorio en GitHub (ej. ciberseguridad-netwatcher).
-
-Enlaza tu repositorio local con el remoto:
-Reemplaza tu-usuario y tu-repositorio con tus datos.
-
-git remote add origin [https://github.com/Cristian-code24/ciberseguridad-netwatcher.git](https://github.com/Cristian-code24/ciberseguridad-netwatcher.git)
-
-Sube tus archivos a GitHub:
-
-git push -u origin main
-
-Licencia
-Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
-creado por cristian lucas:)
+*Creado con ❤️ por [Cristian-code24](https://github.com/Cristian-code24)*
