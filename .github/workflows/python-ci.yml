@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
 
     strategy:
       matrix:
@@ -38,12 +39,13 @@ jobs:
       run: |
         pytest -v > pytest_report.log
 
-    - name: Commit and push report on failure
+    - name: Create Issue on Failure
       if: failure()
       run: |
         cat pytest_report.log
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        git add pytest_report.log
-        git commit -m "chore: CI pytest failure report [skip ci]" || true
-        git push
+        BODY=$(cat pytest_report.log | jq -aRs .)
+        curl -X POST \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/Cristian-code24/ciberseguridad-netwatcher/issues \
+          -d "{\"title\":\"CI Failure Report\",\"body\":$BODY}"
